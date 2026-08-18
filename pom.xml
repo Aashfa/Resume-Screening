@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+      The Spring Boot "parent" POM. We inherit from it, which gives us two things:
+        1. Dependency management: a curated list of library versions known to work
+           together. That is why our <dependency> blocks below have no <version> tag.
+        2. Sensible plugin defaults (compiler, surefire/test runner, resource filtering).
+    -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.16</version>
+        <relativePath/> <!-- empty = look the parent up in the remote repository, not on disk -->
+    </parent>
+
+    <!-- Coordinates: together these uniquely identify our artifact in any Maven repo. -->
+    <groupId>dev.lateef</groupId>
+    <artifactId>skill-gap-analyzer</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>skill-gap-analyzer</name>
+    <description>REST API that scores a candidate's skills against a job description</description>
+
+    <properties>
+        <!-- Boot's parent reads this and configures the compiler for Java 21. -->
+        <java.version>21</java.version>
+    </properties>
+
+    <dependencies>
+        <!-- Spring MVC + embedded Tomcat + Jackson JSON. This is what makes it a REST API. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Jakarta Bean Validation (@NotBlank, @NotEmpty...) + the Hibernate Validator impl. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!--
+          Apache PDFBox: reads the text layer out of an uploaded PDF resume.
+
+          An explicit <version> is required here, unlike the Spring starters above.
+          Boot's parent POM manages versions for libraries in the Spring ecosystem;
+          PDFBox is not one of them, so nothing would pick a version for us.
+
+          Note the API changed in PDFBox 3: the old `PDDocument.load(...)` from 2.x was
+          removed in favour of `Loader.loadPDF(...)`. Most tutorials online still show 2.x.
+        -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.8</version>
+        </dependency>
+
+        <!--
+          NOTE: this project is deliberately stateless. There is no database, no JPA and
+          no persistence layer. Nothing is stored between requests.
+          To add persistence later you would add spring-boot-starter-data-jpa plus a
+          driver (h2 / mysql-connector-j / postgresql) here, and a datasource URL in
+          application.properties. No change would be needed in the extraction or
+          scoring classes, because they have no framework dependencies at all.
+        -->
+
+        <!--
+          JUnit 5, AssertJ, Mockito, MockMvc, spring-boot-test.
+          scope=test: on the classpath for tests only, never shipped in the jar.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+              Repackages the compiled classes into an executable "fat jar" and enables
+              the `mvn spring-boot:run` goal we use during development.
+            -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
